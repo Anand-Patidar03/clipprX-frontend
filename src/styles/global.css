@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@layer base {
+  button,
+  a,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"],
+  input[type="reset"] {
+    cursor: pointer;
+  }
+}
