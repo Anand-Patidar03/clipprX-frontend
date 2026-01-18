@@ -16,7 +16,7 @@ const Profile = () => {
     const [subscribing, setSubscribing] = useState(false);
 
 
-    const [activeTab, setActiveTab] = useState("videos");
+    const [activeTab, setActiveTab] = useState("videos"); // 'videos' | 'playlists' | 'liked' | 'history'
     const [likedVideos, setLikedVideos] = useState([]);
     const [watchHistory, setWatchHistory] = useState([]);
 

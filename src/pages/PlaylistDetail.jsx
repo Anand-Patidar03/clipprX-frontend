@@ -47,7 +47,6 @@ const PlaylistDetail = () => {
                 name: editName,
                 description: editDesc
             });
-            setPlaylist(res.data.data);
 
             setPlaylist(prev => ({ ...prev, name: editName, description: editDesc }));
             setIsEditing(false);

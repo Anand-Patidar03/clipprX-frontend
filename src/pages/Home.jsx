@@ -310,7 +310,7 @@ const Home = () => {
 
   const fetchTotalUsers = async () => {
     try {
-      setLoading(true);
+
       const res = await api.get("/users/stats/total-users");
       if (res.data?.data?.count) {
         setTotalUsers(`${res.data.data.count}+`);
@@ -403,6 +403,7 @@ const Home = () => {
       <AppNavbar />
 
 
+
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-gray-950">
         <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-purple-900/20 rounded-full mix-blend-screen filter blur-[120px] animate-blob"></div>
         <div className="absolute top-[20%] right-[-10%] w-[40vw] h-[40vw] bg-blue-900/20 rounded-full mix-blend-screen filter blur-[120px] animate-blob animation-delay-2000"></div>
@@ -468,9 +469,10 @@ const Home = () => {
 
                 <div className="lg:w-1/2 relative perspective-1000 group">
 
+
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-tr from-blue-900/20 via-purple-900/20 to-pink-900/20 rounded-full blur-[60px] group-hover:blur-[80px] transition-all duration-700 pointer-events-none"></div>
 
-                  {/* The 3D Card */}
+
                   <div className="relative transform lg:rotate-y-[-12deg] lg:rotate-x-[5deg] group-hover:rotate-y-0 group-hover:rotate-x-0 transition-transform duration-700 ease-out preserve-3d">
 
 

@@ -17,11 +17,11 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes */}
+
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
 
-        {/* Protected Routes */}
+
         <Route
           path="/"
           element={
@@ -39,7 +39,7 @@ function App() {
           }
         />
 
-        {/* Video Routes */}
+
         <Route
           path="/upload"
           element={
@@ -57,7 +57,7 @@ function App() {
           }
         />
 
-        {/* User & Channel Routes */}
+
         <Route
           path="/channel/:username"
           element={
@@ -75,7 +75,7 @@ function App() {
           }
         />
 
-        {/* Features / Placeholders mapped from backend routes */}
+
         <Route
           path="/history"
           element={
