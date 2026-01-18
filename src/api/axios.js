@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "https://backend-project-ukhe.onrender.com/api/v1",
+  baseURL: import.meta.env.VITE_BACKEND_URL || "http://localhost:7000/api/v1",
   withCredentials: true,
 });
 
