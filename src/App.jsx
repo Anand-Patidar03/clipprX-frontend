@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Home from "./pages/Home";
+import Subscriptions from "./pages/Subscriptions";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 import Upload from "./pages/Upload";
@@ -107,14 +108,7 @@ function App() {
           path="/subscriptions"
           element={
             <ProtectedRoute>
-              <div className="min-h-screen bg-gray-900 pt-20 px-6">
-                <EmptyState
-                  title="Subscriptions"
-                  description="Channels you subscribe to will appear here."
-                  actionText="Explore Channels"
-                  onAction={() => window.location.href = '/'}
-                />
-              </div>
+              <Subscriptions />
             </ProtectedRoute>
           }
         />

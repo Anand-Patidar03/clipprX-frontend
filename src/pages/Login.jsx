@@ -46,7 +46,7 @@ const Login = () => {
         {/* Logo/Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-            Videogram
+            ClipprX
           </h1>
           <p className="text-gray-400 mt-2 text-sm">Welcome back, creator.</p>
         </div>

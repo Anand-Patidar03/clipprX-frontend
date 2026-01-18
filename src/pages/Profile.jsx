@@ -16,7 +16,12 @@ const Profile = () => {
     const [subscribing, setSubscribing] = useState(false);
 
     // Tab State
-    const [activeTab, setActiveTab] = useState("videos"); // 'videos' | 'playlists'
+    const [activeTab, setActiveTab] = useState("videos"); // 'videos' | 'playlists' | 'liked' | 'history'
+    const [likedVideos, setLikedVideos] = useState([]);
+    const [watchHistory, setWatchHistory] = useState([]);
+
+    // Avatar Modal
+    const [isAvatarModalOpen, setIsAvatarModalOpen] = useState(false);
 
     // Create Playlist State
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -47,9 +52,10 @@ const Profile = () => {
                 if (profileData._id) {
                     const videosRes = await api.get(`/videos?userId=${profileData._id}`);
                     setVideos(videosRes.data.data.docs || []);
-
-                    // 3. Fetch User's Playlists
                     fetchPlaylists(profileData._id);
+
+                    // Reset specialized tabs when profile changes
+                    if (activeTab === 'liked' || activeTab === 'history') setActiveTab('videos');
                 }
             } catch (err) {
                 console.error("Failed to fetch profile:", err);
@@ -63,6 +69,32 @@ const Profile = () => {
             fetchProfileData();
         }
     }, [username, refreshTrigger]);
+
+    useEffect(() => {
+        if (activeTab === 'liked' && isOwner) {
+            fetchLikedVideos();
+        } else if (activeTab === 'history' && isOwner) {
+            fetchWatchHistory();
+        }
+    }, [activeTab, isOwner]);
+
+    const fetchLikedVideos = async () => {
+        try {
+            const res = await api.get("/likes/videos");
+            setLikedVideos(res.data.data || []);
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const fetchWatchHistory = async () => {
+        try {
+            const res = await api.post("/users/watch-history");
+            setWatchHistory(res.data.data || []);
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     const fetchPlaylists = async (userId) => {
         try {
@@ -152,13 +184,16 @@ const Profile = () => {
 
                         {/* Avatar & Basic Info */}
                         <div className="flex flex-col md:flex-row items-center md:items-end gap-6 text-center md:text-left">
-                            <div className="relative group">
+                            <div className="relative group cursor-pointer" onClick={() => setIsAvatarModalOpen(true)}>
                                 <div className="w-32 h-32 md:w-40 md:h-40 rounded-full p-1 bg-gradient-to-tr from-blue-500 via-purple-500 to-pink-500">
                                     <img
                                         src={profile.avatar}
                                         alt={profile.username}
                                         className="w-full h-full rounded-full border-4 border-gray-900 object-cover bg-gray-800"
                                     />
+                                    <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
+                                    </div>
                                 </div>
                             </div>
 
@@ -221,6 +256,22 @@ const Profile = () => {
                     >
                         Playlists
                     </button>
+                    {isOwner && (
+                        <>
+                            <button
+                                onClick={() => setActiveTab("liked")}
+                                className={`pb-4 text-lg font-bold transition-all border-b-2 ${activeTab === 'liked' ? 'text-white border-pink-500' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+                            >
+                                Liked Videos
+                            </button>
+                            <button
+                                onClick={() => setActiveTab("history")}
+                                className={`pb-4 text-lg font-bold transition-all border-b-2 ${activeTab === 'history' ? 'text-white border-green-500' : 'text-gray-500 border-transparent hover:text-gray-300'}`}
+                            >
+                                Watch History
+                            </button>
+                        </>
+                    )}
                 </div>
 
                 {/* VIDEOS TAB */}
@@ -234,17 +285,18 @@ const Profile = () => {
                         </div>
 
                         {videos.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                 {videos.map((video) => (
                                     <VideoCard
                                         key={video._id}
                                         videoId={video._id}
                                         thumbnail={video.thumbnail}
                                         title={video.title}
-                                        channelName={profile.username}
+                                        channelName={profile.fullName}
+                                        ownerUsername={profile.username}
                                         ownerAvatar={profile.avatar}
                                         views={video.views}
-                                        likes={video.likes || 0}
+                                        likes={video.likesCount || 0}
                                         uploadedAt={formatTimeAgo(video.createdAt)}
                                         duration={video.duration ? `${Math.floor(video.duration / 60)}:${Math.floor(video.duration % 60).toString().padStart(2, '0')}` : "00:00"}
                                         isLive={false}
@@ -279,7 +331,7 @@ const Profile = () => {
                         </div>
 
                         {playlists.length > 0 ? (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                                 {playlists.map((playlist) => (
                                     <a key={playlist._id} href={`/playlist/${playlist._id}`} className="group bg-gray-800/40 rounded-2xl overflow-hidden border border-white/5 hover:border-blue-500/30 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl block">
                                         {/* Thumbnail (Use first video or placeholder) */}
@@ -324,6 +376,76 @@ const Profile = () => {
                                 <h3 className="text-xl font-medium text-white">No playlists yet</h3>
                                 <p className="text-gray-400 mt-2">There are no public playlists to show.</p>
                             </div>
+                        )}
+                    </>
+                )}
+
+                {/* LIKED VIDEOS TAB */}
+                {activeTab === 'liked' && isOwner && (
+                    <>
+                        <div className="flex items-center justify-between mb-8">
+                            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                                <span className="w-1 h-8 bg-pink-500 rounded-full display-block"></span>
+                                Liked Videos
+                            </h2>
+                        </div>
+                        {likedVideos.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                {likedVideos.map((item) => (
+                                    item.video ? (
+                                        <VideoCard
+                                            key={item._id}
+                                            videoId={item.video._id}
+                                            thumbnail={item.video.thumbnail}
+                                            title={item.video.title}
+                                            channelName={item.video.owner?.fullName || "Unknown"}
+                                            ownerUsername={item.video.owner?.username}
+                                            ownerAvatar={item.video.owner?.avatar}
+                                            views={item.video.views}
+                                            likes={item.video.likesCount || 0}
+                                            uploadedAt={formatTimeAgo(item.video.createdAt)}
+                                            duration={item.video.duration ? `${Math.floor(item.video.duration / 60)}:${Math.floor(item.video.duration % 60).toString().padStart(2, '0')}` : "00:00"}
+                                            isLive={false}
+                                        />
+                                    ) : null
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-20 text-gray-500">No liked videos found.</div>
+                        )}
+                    </>
+                )}
+
+                {/* WATCH HISTORY TAB */}
+                {activeTab === 'history' && isOwner && (
+                    <>
+                        <div className="flex items-center justify-between mb-8">
+                            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                                <span className="w-1 h-8 bg-green-500 rounded-full display-block"></span>
+                                Watch History
+                            </h2>
+                        </div>
+                        {watchHistory.length > 0 ? (
+                            <div className="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                {watchHistory.map((video) => (
+                                    <VideoCard
+                                        key={video._id}
+                                        videoId={video._id}
+                                        thumbnail={video.thumbnail}
+                                        title={video.title}
+                                        channelName={video.owner?.fullName || "Unknown"}
+                                        ownerUsername={video.owner?.username}
+                                        ownerAvatar={video.owner?.avatar}
+                                        views={video.views}
+                                        likes={video.likesCount || 0}
+                                        uploadedAt={formatTimeAgo(video.createdAt)}
+                                        duration={video.duration ? `${Math.floor(video.duration / 60)}:${Math.floor(video.duration % 60).toString().padStart(2, '0')}` : "00:00"}
+                                        isLive={false}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="text-center py-20 text-gray-500">No watch history found.</div>
                         )}
                     </>
                 )}
@@ -384,6 +506,25 @@ const Profile = () => {
                     onClose={() => setIsEditModalOpen(false)}
                     onUpdate={() => setRefreshTrigger(prev => prev + 1)}
                 />
+            )}
+
+            {/* Avatar Modal */}
+            {isAvatarModalOpen && profile && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-4 cursor-zoom-out" onClick={() => setIsAvatarModalOpen(false)}>
+                    <div className="relative max-w-4xl max-h-[90vh] w-full h-full flex items-center justify-center">
+                        <img
+                            src={profile.avatar}
+                            alt={profile.username}
+                            className="max-w-full max-h-full object-contain rounded-full shadow-2xl border-4 border-gray-800"
+                        />
+                        <button
+                            className="absolute top-4 right-4 text-white hover:text-gray-300"
+                            onClick={() => setIsAvatarModalOpen(false)}
+                        >
+                            <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                        </button>
+                    </div>
+                </div>
             )}
 
         </div>

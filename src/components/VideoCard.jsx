@@ -5,7 +5,8 @@ const VideoCard = ({
   videoId,
   thumbnail,
   title,
-  channelName,
+  channelName, // Acts as Full Name
+  ownerUsername, // New prop for linking
   ownerAvatar,
   views,
   likes,
@@ -13,6 +14,7 @@ const VideoCard = ({
   duration,
   type = "vertical" // "vertical" | "horizontal"
 }) => {
+  const linkUsername = ownerUsername || channelName; // Fallback
   if (type === "horizontal") {
     return (
       <div className="group flex flex-row gap-3 bg-gray-800/20 rounded-lg overflow-hidden border border-white/5 hover:border-purple-500/50 transition-all duration-300 hover:bg-gray-800/40">
@@ -41,13 +43,18 @@ const VideoCard = ({
           </Link>
 
           {/* Channel Name */}
-          <Link to={`/channel/${channelName}`} className="text-xs text-gray-400 hover:text-white transition-colors mb-1 truncate block">
+          <Link to={`/channel/${linkUsername}`} className="text-xs text-gray-400 hover:text-white transition-colors mb-1 truncate block">
             {channelName}
           </Link>
 
           {/* Meta Info */}
-          <div className="flex items-center text-[10px] text-gray-500 gap-1.5 mt-auto">
+          <div className="flex items-center text-[10px] text-gray-500 gap-2 mt-auto">
             <span>{views} views</span>
+            <span>•</span>
+            <span className="flex items-center gap-1">
+              <svg className="w-3 h-3 text-pink-500 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
+              {likes}
+            </span>
             <span>•</span>
             <span>{uploadedAt}</span>
           </div>
@@ -94,14 +101,14 @@ const VideoCard = ({
 
             {/* Channel Info with Avatar */}
             <div className="flex items-center gap-2 mb-2">
-              <Link to={`/channel/${channelName}`} className="block flex-shrink-0">
+              <Link to={`/channel/${linkUsername}`} className="block flex-shrink-0">
                 <img
                   src={ownerAvatar || "https://ui-avatars.com/api/?name=" + channelName}
                   alt={channelName}
                   className="w-6 h-6 rounded-full object-cover border border-gray-700"
                 />
               </Link>
-              <Link to={`/channel/${channelName}`} className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors">
+              <Link to={`/channel/${linkUsername}`} className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-white transition-colors">
                 <span>{channelName}</span>
                 <svg className="w-3 h-3 text-blue-500 fill-current" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" /></svg>
               </Link>
@@ -109,11 +116,11 @@ const VideoCard = ({
 
             {/* Meta Info */}
             <div className="flex items-center gap-3 text-[10px] font-medium text-gray-500">
+              <span>{views} views</span>
               <span className="flex items-center gap-1">
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                {views}
+                <svg className="w-3 h-3 text-pink-500 fill-current" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" /></svg>
+                {likes}
               </span>
-
               <span>{uploadedAt}</span>
             </div>
           </div>

@@ -62,7 +62,7 @@ const Register = () => {
           <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-pink-500 to-purple-500">
             Join the Revolution
           </h1>
-          <p className="text-gray-400 mt-2 text-sm">Create your Videogram account today.</p>
+          <p className="text-gray-400 mt-2 text-sm">Create your ClipprX account today.</p>
         </div>
 
         {error && (

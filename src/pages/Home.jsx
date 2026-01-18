@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import AppNavbar from "../components/AppNavbar";
 import VideoCard from "../components/VideoCard";
@@ -308,10 +308,32 @@ const Home = () => {
   const [foundUsers, setFoundUsers] = useState([]);
   const [tweets, setTweets] = useState([]);
   const [activeTab, setActiveTab] = useState("videos"); // 'videos' | 'community'
+  const [totalUsers, setTotalUsers] = useState("10k+");
 
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
+
+  const videoSectionRef = useRef(null);
+
+  const fetchTotalUsers = async () => {
+    try {
+      // NOTE: Adjust endpoint if prefix is different, assuming /api/v1/users/stats/total-users
+      const res = await api.get("/users/stats/total-users");
+      if (res.data?.data?.count) {
+        setTotalUsers(`${res.data.data.count}+`);
+      }
+    } catch (err) {
+      console.error("Failed to fetch total users", err);
+    }
+  };
+
+  const handleStartWatching = () => {
+    setActiveTab("videos");
+    setTimeout(() => {
+      videoSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, 100);
+  };
 
   const fetchData = async (pageNum = 1) => {
     try {
@@ -348,6 +370,7 @@ const Home = () => {
   useEffect(() => {
     setPage(1);
     fetchData(1);
+    fetchTotalUsers();
     if (activeTab === 'community') fetchTweets();
   }, [location.search, location.pathname, activeTab]);
 
@@ -387,41 +410,129 @@ const Home = () => {
     <div className="min-h-screen bg-gray-900 text-white font-sans selection:bg-purple-500 selection:text-white overflow-x-hidden">
       <AppNavbar />
 
-      {/* Background Gradients */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-purple-600 rounded-full mix-blend-multiply filter blur-[128px] opacity-40 animate-blob"></div>
-        <div className="absolute top-[-10%] right-[-10%] w-96 h-96 bg-blue-600 rounded-full mix-blend-multiply filter blur-[128px] opacity-40 animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-[-20%] left-[20%] w-96 h-96 bg-pink-600 rounded-full mix-blend-multiply filter blur-[128px] opacity-40 animate-blob animation-delay-4000"></div>
+      {/* Background Gradients - Global & Fixed */}
+      {/* Background Gradients - Global & Fixed */}
+      <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden bg-gray-950">
+        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-purple-900/20 rounded-full mix-blend-screen filter blur-[120px] animate-blob"></div>
+        <div className="absolute top-[20%] right-[-10%] w-[40vw] h-[40vw] bg-blue-900/20 rounded-full mix-blend-screen filter blur-[120px] animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-[-10%] left-[20%] w-[45vw] h-[45vw] bg-pink-900/10 rounded-full mix-blend-screen filter blur-[120px] animate-blob animation-delay-4000"></div>
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-5 brightness-100 contrast-150"></div>
       </div>
 
       <div className="relative z-10">
         {/* 1. Hero Section (Only show on Home Page proper when NOT searching) */}
         {!query && !isAllVideos && (
-          <section className="relative pt-32 pb-12 lg:pt-48 lg:pb-20 px-6">
-            <div className="max-w-7xl mx-auto text-center lg:text-left lg:flex lg:items-center lg:justify-between">
-              <div className="lg:w-1/2 space-y-8">
-                <h1 className="text-5xl lg:text-7xl font-extrabold tracking-tight leading-tight bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-500 to-pink-500">
-                  Share Your Moments <br /> With the World
-                </h1>
-                <p className="text-lg lg:text-xl text-gray-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                  Videogram is the video sharing and community platform for creators.
-                </p>
-              </div>
-              {/* Abstract 3D-like visual for Desktop */}
-              <div className="hidden lg:block lg:w-1/2 relative">
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur-2xl opacity-30 transform rotate-6 scale-90"></div>
-                <div className="relative bg-gray-800/50 backdrop-blur-xl border border-gray-700/50 rounded-2xl p-6 shadow-2xl transform rotate-3 hover:rotate-0 transition-all duration-500">
-                  <div className="aspect-video bg-gray-900/80 rounded-lg flex items-center justify-center overflow-hidden group">
-                    <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-sm group-hover:scale-110 transition-transform duration-300">
-                      <svg className="w-8 h-8 text-white fill-current ml-1" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+          <section className="relative pt-20 pb-20 lg:pt-32 lg:pb-32 px-6 overflow-hidden">
+            <div className="max-w-7xl mx-auto">
+              <div className="flex flex-col lg:flex-row items-center gap-16">
+
+                {/* Left Content */}
+                <div className="flex-1 text-center lg:text-left z-10 space-y-8">
+                  <div className="inline-block px-4 py-1.5 rounded-full border border-purple-500/30 bg-purple-500/10 backdrop-blur-md mb-4">
+                    <span className="text-purple-300 text-sm font-semibold tracking-wide uppercase">The Future of Streaming</span>
+                  </div>
+
+                  <h1 className="text-6xl md:text-7xl lg:text-8xl font-black tracking-tighter leading-[1.1]">
+                    <span className="block text-white mb-2 drop-shadow-[0_0_10px_rgba(255,255,255,0.1)]">Share Your</span>
+                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400/90 via-purple-500/90 to-pink-500/90 drop-shadow-[0_0_15px_rgba(168,85,247,0.3)]">
+                      Digital Legacy
+                    </span>
+                  </h1>
+
+                  <p className="text-lg md:text-xl text-gray-500 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-light">
+                    Join the next generation of creators on <span className="text-gray-200 font-semibold">ClipprX</span>.
+                    Experience distinctively mesmerizing content with our decentralized video ecosystem.
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-5 pt-4">
+                    <button onClick={handleStartWatching} className="group relative px-8 py-4 bg-white text-black rounded-full font-bold text-lg hover:scale-105 transition-transform duration-300 shadow-[0_0_20px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(255,255,255,0.5)]">
+                      <span className="relative z-10 flex items-center gap-2">
+                        Start Watching
+                        <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                      </span>
+                    </button>
+                    <Link to="/upload" className="px-8 py-4 rounded-full font-bold text-lg text-white border border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 hover:border-white/40 transition-all duration-300 flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                      Upload Video
+                    </Link>
+                  </div>
+
+                  {/* Stats / Trust Badges */}
+                  <div className="pt-8 flex items-center justify-center lg:justify-start gap-8 text-gray-500 text-sm font-medium">
+                    <div className="flex items-center gap-2">
+                      <div className="flex -space-x-3">
+                        <div className="w-8 h-8 rounded-full bg-blue-500 border-2 border-gray-900"></div>
+                        <div className="w-8 h-8 rounded-full bg-purple-500 border-2 border-gray-900"></div>
+                        <div className="w-8 h-8 rounded-full bg-pink-500 border-2 border-gray-900"></div>
+                      </div>
+                      <span>{totalUsers} Creators</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                      <span>Live Now</span>
                     </div>
                   </div>
-                  <div className="mt-4 space-y-3">
-                    <div className="h-4 bg-gray-700 rounded w-3/4"></div>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 bg-gray-600 rounded-full"></div>
-                        <div className="h-3 bg-gray-700 rounded w-24"></div>
+                </div>
+
+                {/* Right Content (3D Visual) */}
+                <div className="lg:w-1/2 relative perspective-1000 group">
+                  {/* Glowing Background Blob behind card */}
+                  {/* Glowing Background Blob behind card */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-gradient-to-tr from-blue-900/20 via-purple-900/20 to-pink-900/20 rounded-full blur-[60px] group-hover:blur-[80px] transition-all duration-700 pointer-events-none"></div>
+
+                  {/* The 3D Card */}
+                  <div className="relative transform lg:rotate-y-[-12deg] lg:rotate-x-[5deg] group-hover:rotate-y-0 group-hover:rotate-x-0 transition-transform duration-700 ease-out preserve-3d">
+
+                    {/* Main Glass Card */}
+                    <div className="relative bg-black/60 backdrop-blur-3xl border border-white/5 rounded-3xl p-4 shadow-2xl">
+                      {/* Card Header simulation */}
+                      <div className="flex items-center justify-between mb-4 px-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-red-500/80"></div>
+                          <div className="w-3 h-3 rounded-full bg-yellow-500/80"></div>
+                          <div className="w-3 h-3 rounded-full bg-green-500/80"></div>
+                        </div>
+                        <div className="h-2 w-20 bg-white/10 rounded-full"></div>
+                      </div>
+
+                      {/* Video Area Placeholder */}
+                      <div className="relative aspect-video rounded-xl overflow-hidden bg-black/50 border border-white/5 group-hover:border-purple-500/30 transition-colors">
+                        <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-blue-500/10"></div>
+
+                        {/* Play Button */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center border border-white/20 shadow-lg group-hover:scale-110 transition-transform">
+                          <svg className="w-6 h-6 text-white ml-1" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                        </div>
+
+                        {/* Fake UI Elements inside video */}
+                        <div className="absolute bottom-4 left-4 right-4 flex justify-between items-end">
+                          <div className="space-y-2">
+                            <div className="h-3 w-32 bg-white/20 rounded"></div>
+                            <div className="h-2 w-20 bg-white/10 rounded"></div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Floating Badge 1 */}
+                      <div className="absolute -top-6 -right-6 bg-gray-800/80 backdrop-blur-xl border border-white/10 p-3 rounded-2xl shadow-xl animate-float-slow">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">🔥</span>
+                          <div>
+                            <p className="text-xs text-gray-400">Trending</p>
+                            <p className="text-sm font-bold text-white">#1 Viral</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Floating Badge 2 */}
+                      <div className="absolute -bottom-8 -left-8 bg-gray-800/80 backdrop-blur-xl border border-white/10 p-3 rounded-2xl shadow-xl animate-float-delayed flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-pink-500 to-orange-500 p-[2px]">
+                          <div className="w-full h-full rounded-full bg-gray-900"></div>
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-400">New Upload</p>
+                          <p className="text-sm font-bold text-white">Cyber_City</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -432,7 +543,7 @@ const Home = () => {
         )}
 
         {/* 2. Content Section */}
-        <section className={`px-6 ${query || isAllVideos ? 'pt-32 pb-20' : 'pb-20'}`}>
+        <section ref={videoSectionRef} className={`px-6 ${query || isAllVideos ? 'pt-32 pb-20' : 'pb-20'}`}>
           <div className="max-w-7xl mx-auto">
 
             {/* Header */}
@@ -489,10 +600,11 @@ const Home = () => {
                           videoId={video._id}
                           thumbnail={video.thumbnail}
                           title={video.title}
-                          channelName={video.owner?.username || "Unknown"}
+                          channelName={video.owner?.fullName || video.owner?.username || "Unknown"}
+                          ownerUsername={video.owner?.username}
                           ownerAvatar={video.owner?.avatar}
                           views={video.views}
-                          likes={video.likes || 0}
+                          likes={video.likesCount || 0}
                           uploadedAt={formatTimeAgo(video.createdAt)}
                           duration={video.duration ? `${Math.floor(video.duration / 60)}:${Math.floor(video.duration % 60).toString().padStart(2, '0')}` : "00:00"}
                           type={query ? "horizontal" : "vertical"}
@@ -538,7 +650,7 @@ const Home = () => {
         <section className="py-20 px-6 bg-black/20">
           <div className="max-w-7xl mx-auto">
             <div className="text-center mb-16">
-              <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 mb-4 py-2">Why Videogram?</h2>
+              <h2 className="text-3xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500 mb-4 py-2">Why ClipprX?</h2>
               <p className="text-gray-400 max-w-2xl mx-auto">Experience the next generation of video sharing with features built for creators and viewers alike.</p>
             </div>
 
@@ -560,7 +672,7 @@ const Home = () => {
         </section>
 
         <footer className="py-8 border-t border-gray-800 text-center text-gray-500 text-sm">
-          &copy; {new Date().getFullYear()} Videogram. All rights reserved.
+          &copy; {new Date().getFullYear()} ClipprX. All rights reserved.
         </footer>
 
 

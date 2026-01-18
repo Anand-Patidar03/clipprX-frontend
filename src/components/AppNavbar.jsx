@@ -4,6 +4,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 const AppNavbar = () => {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -24,7 +25,7 @@ const AppNavbar = () => {
           {/* Logo */}
           <div className="flex-shrink-0 cursor-pointer" onClick={() => navigate("/")}>
             <span className="text-2xl font-extrabold tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-              Videogram
+              ClipprX
             </span>
           </div>
 
@@ -58,6 +59,14 @@ const AppNavbar = () => {
               <NavLink to="/upload" className={navLinkClass}>
                 Upload
               </NavLink>
+              <NavLink to="/subscriptions" className={navLinkClass}>
+                Subscriptions
+              </NavLink>
+              {user.username && (
+                <NavLink to={`/channel/${user.username}`} className={navLinkClass}>
+                  Profile
+                </NavLink>
+              )}
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white rounded-lg text-sm font-medium transition-all duration-300"
@@ -115,6 +124,28 @@ const AppNavbar = () => {
               >
                 Upload
               </NavLink>
+              <NavLink
+                to="/subscriptions"
+                onClick={() => setIsOpen(false)}
+                className={({ isActive }) =>
+                  `block px-3 py-2 rounded-md text-base font-medium ${isActive ? "bg-gray-800 text-white" : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                  }`
+                }
+              >
+                Subscriptions
+              </NavLink>
+              {user.username && (
+                <NavLink
+                  to={`/channel/${user.username}`}
+                  onClick={() => setIsOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-3 py-2 rounded-md text-base font-medium ${isActive ? "bg-gray-800 text-white" : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                    }`
+                  }
+                >
+                  Profile
+                </NavLink>
+              )}
               <button
                 onClick={() => {
                   handleLogout();

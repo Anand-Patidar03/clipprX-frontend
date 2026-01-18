@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
 import AppNavbar from '../components/AppNavbar';
@@ -11,6 +11,9 @@ const Watch = () => {
     const [video, setVideo] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // Check for view increment loop
+    const lastIncrementedVideoId = useRef(null);
 
     // States for dynamic features
     const [comments, setComments] = useState([]);
@@ -51,7 +54,7 @@ const Watch = () => {
                 setVideo(videoData);
 
                 // Initialize states from API data
-                setLikeCount(videoData.likes || 0); // Use backend count if available
+                setLikeCount(videoData.likesCount || 0); // Use backend count if available
                 setIsLiked(videoData.isLiked || false); // Use backend status if available
                 setIsSubscribed(videoData.isSubscribed || false); // Use backend status if available
 
@@ -78,6 +81,21 @@ const Watch = () => {
 
         if (videoId) {
             fetchVideoDetails();
+        }
+    }, [videoId]);
+
+    // Handle View Increment
+    useEffect(() => {
+        if (videoId && lastIncrementedVideoId.current !== videoId) {
+            const incrementView = async () => {
+                try {
+                    await api.patch(`/videos/${videoId}/view`);
+                } catch (err) {
+                    console.error("Failed to increment view", err);
+                }
+            };
+            incrementView();
+            lastIncrementedVideoId.current = videoId;
         }
     }, [videoId]);
 
@@ -219,6 +237,23 @@ const Watch = () => {
     const [updateTitle, setUpdateTitle] = useState("");
     const [updateDescription, setUpdateDescription] = useState("");
     const [updateThumbnail, setUpdateThumbnail] = useState(null);
+
+    // Share Feature
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [copySuccess, setCopySuccess] = useState(false);
+
+    const handleCopyLink = () => {
+        navigator.clipboard.writeText(window.location.href);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 2000);
+    };
+
+    const shareLinks = [
+        { name: "WhatsApp", icon: "https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg", url: `https://wa.me/?text=${encodeURIComponent(window.location.href)}` },
+        { name: "Twitter", icon: "https://upload.wikimedia.org/wikipedia/commons/c/ce/X_logo_2023.svg", url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}&text=${encodeURIComponent(video?.title)}` },
+        { name: "Facebook", icon: "https://upload.wikimedia.org/wikipedia/commons/b/b8/2021_Facebook_icon.svg", url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}` },
+        { name: "LinkedIn", icon: "https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png", url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}` },
+    ];
 
     const openEditModal = () => {
         setUpdateTitle(video.title);
@@ -403,7 +438,10 @@ const Watch = () => {
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
                                         Save
                                     </button>
-                                    <button className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-800 text-white font-medium hover:bg-gray-700 transition-all">
+                                    <button
+                                        onClick={() => setIsShareModalOpen(true)}
+                                        className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-800 text-white font-medium hover:bg-gray-700 transition-all"
+                                    >
                                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path></svg>
                                         Share
                                     </button>
@@ -587,10 +625,11 @@ const Watch = () => {
                                         videoId={video._id}
                                         thumbnail={video.thumbnail}
                                         title={video.title}
-                                        channelName={video.owner?.username || "Unknown"}
+                                        channelName={video.owner?.fullName || video.owner?.username || "Unknown"}
+                                        ownerUsername={video.owner?.username}
                                         ownerAvatar={video.owner?.avatar}
                                         views={video.views}
-                                        likes={0}
+                                        likes={video.likesCount || 0}
                                         uploadedAt={formatTimeAgo(video.createdAt)}
                                         duration={video.duration ? `${Math.floor(video.duration / 60)}:${String(Math.floor(video.duration % 60)).padStart(2, '0')}` : "00:00"}
                                         type="horizontal" // Use lighter, smaller horizontal layout
@@ -722,6 +761,54 @@ const Watch = () => {
                             >
                                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
                                 Create new playlist
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Share Modal */}
+            {isShareModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+                    <div className="bg-gray-900 border border-gray-700 p-6 rounded-2xl w-full max-w-md shadow-2xl relative">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-white">Share Video</h2>
+                            <button onClick={() => setIsShareModalOpen(false)} className="text-gray-400 hover:text-white transition-colors">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                            </button>
+                        </div>
+
+                        {/* Social Links */}
+                        <div className="flex justify-around gap-4 mb-8">
+                            {shareLinks.map((link) => (
+                                <a
+                                    key={link.name}
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex flex-col items-center gap-2 group"
+                                >
+                                    <div className="w-14 h-14 rounded-full bg-gray-800 flex items-center justify-center group-hover:bg-gray-700 transition-colors border border-gray-700">
+                                        <img src={link.icon} alt={link.name} className="w-8 h-8 object-contain filter " />
+                                    </div>
+                                    <span className="text-xs text-gray-400 group-hover:text-white">{link.name}</span>
+                                </a>
+                            ))}
+                        </div>
+
+                        {/* Copy Link Section */}
+                        <div className="bg-black/50 rounded-xl p-2 flex items-center gap-2 border border-gray-800">
+                            <input
+                                type="text"
+                                value={window.location.href}
+                                readOnly
+                                className="bg-transparent text-sm text-gray-400 flex-1 px-2 focus:outline-none"
+                            />
+                            <button
+                                onClick={handleCopyLink}
+                                className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${copySuccess ? 'bg-green-500 text-white' : 'bg-blue-600 text-white hover:bg-blue-500'}`}
+                            >
+                                {copySuccess ? "Copied!" : "Copy"}
                             </button>
                         </div>
                     </div>
