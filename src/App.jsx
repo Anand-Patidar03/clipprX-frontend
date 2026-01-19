@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import ResetPassword from "./pages/ResetPassword";
 import Home from "./pages/Home";
 import Subscriptions from "./pages/Subscriptions";
 import ProtectedRoute from "./routes/ProtectedRoute";
@@ -12,6 +13,7 @@ import PlaylistList from "./pages/PlaylistList";
 import PlaylistDetail from "./pages/PlaylistDetail";
 import TweetFeed from "./pages/TweetFeed";
 import EmptyState from "./components/EmptyState";
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
   return (
@@ -20,6 +22,7 @@ function App() {
 
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
 
 
         <Route
@@ -141,6 +144,14 @@ function App() {
                   onAction={() => window.location.href = '/upload'}
                 />
               </div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
             </ProtectedRoute>
           }
         />

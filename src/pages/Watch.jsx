@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import VideoCard from '../components/VideoCard';
+import UserListModal from '../components/UserListModal';
 import AppNavbar from '../components/AppNavbar';
 import api from '../api/axios';
 import { formatTimeAgo } from "../utils/timeAgo";
@@ -26,6 +27,10 @@ const Watch = () => {
     const [currentUser, setCurrentUser] = useState(null);
     const [editingCommentId, setEditingCommentId] = useState(null);
     const [editedContent, setEditedContent] = useState("");
+
+    const [isLikersModalOpen, setIsLikersModalOpen] = useState(false);
+    const [likersList, setLikersList] = useState([]);
+    const [loadingLikers, setLoadingLikers] = useState(false);
 
 
     useEffect(() => {
@@ -146,6 +151,18 @@ const Watch = () => {
 
             setIsLiked((prev) => !prev);
             setLikeCount((prev) => (isLiked ? prev - 1 : prev + 1));
+        }
+    };
+
+    const fetchLikers = async () => {
+        try {
+            setLoadingLikers(true);
+            const res = await api.get(`/likes/video/${videoId}/users`);
+            setLikersList(res.data.data || []);
+        } catch (err) {
+            console.error("Failed to fetch likers", err);
+        } finally {
+            setLoadingLikers(false);
         }
     };
 
@@ -423,13 +440,27 @@ const Watch = () => {
                                 </div>
 
                                 <div className="flex items-center gap-2 md:gap-4">
-                                    <button
-                                        onClick={handleToggleLike}
-                                        className={`flex items-center gap-2 px-4 py-2 rounded-full font-medium transition-all ${isLiked ? 'bg-white text-black' : 'bg-gray-800 text-white hover:bg-gray-700'}`}
-                                    >
-                                        <svg className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : 'fill-none text-white'}`} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
-                                        {likeCount}
-                                    </button>
+                                    <div className={`flex items-center rounded-full font-medium transition-all ${isLiked ? 'bg-white text-black' : 'bg-gray-800 text-white'}`}>
+                                        <button
+                                            onClick={handleToggleLike}
+                                            className="pl-4 pr-3 py-2 hover:opacity-80 transition-opacity flex items-center justify-center border-r border-gray-500/30"
+                                            title={isLiked ? "Unlike" : "Like"}
+                                        >
+                                            <svg className={`w-5 h-5 ${isLiked ? 'fill-red-500 text-red-500' : 'fill-none text-current'}`} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                if (likeCount > 0) {
+                                                    fetchLikers();
+                                                    setIsLikersModalOpen(true);
+                                                }
+                                            }}
+                                            className="pr-4 pl-3 py-2 hover:opacity-80 transition-opacity disabled:opacity-50 disabled:cursor-default"
+                                            disabled={likeCount === 0}
+                                        >
+                                            {likeCount}
+                                        </button>
+                                    </div>
                                     <button
                                         onClick={openSaveModal}
                                         className="flex items-center gap-2 px-4 py-2 rounded-full bg-gray-800 text-white font-medium hover:bg-gray-700 transition-all"
@@ -657,6 +688,13 @@ const Watch = () => {
                 </div >
             </div>
 
+            {isLikersModalOpen && (
+                <UserListModal
+                    users={likersList}
+                    onClose={() => setIsLikersModalOpen(false)}
+                    title="Liked by"
+                />
+            )}
 
             {
                 isEditModalOpen && (

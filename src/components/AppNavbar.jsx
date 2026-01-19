@@ -59,6 +59,11 @@ const AppNavbar = () => {
               <NavLink to="/upload" className={navLinkClass}>
                 Upload
               </NavLink>
+              {user?.role === 'admin' && (
+                <NavLink to="/admin" className={navLinkClass}>
+                  Admin
+                </NavLink>
+              )}
               <NavLink to="/subscriptions" className={navLinkClass}>
                 Subscriptions
               </NavLink>
@@ -124,6 +129,18 @@ const AppNavbar = () => {
               >
                 Upload
               </NavLink>
+              {user?.role === 'admin' && (
+                <NavLink
+                  to="/admin"
+                  onClick={() => setIsOpen(false)}
+                  className={({ isActive }) =>
+                    `block px-3 py-2 rounded-md text-base font-medium ${isActive ? "bg-gray-800 text-white" : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                    }`
+                  }
+                >
+                  Admin
+                </NavLink>
+              )}
               <NavLink
                 to="/subscriptions"
                 onClick={() => setIsOpen(false)}

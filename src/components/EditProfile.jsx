@@ -13,6 +13,12 @@ const EditProfile = ({ user, onClose, onUpdate }) => {
     const [avatarPreview, setAvatarPreview] = useState(user?.avatar || "");
     const [coverPreview, setCoverPreview] = useState(user?.coverImage || "");
 
+    // Password State
+    const [oldPassword, setOldPassword] = useState("");
+    const [newPassword, setNewPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [passwordError, setPasswordError] = useState("");
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -35,22 +41,41 @@ const EditProfile = ({ user, onClose, onUpdate }) => {
     const handleSave = async () => {
         setLoading(true);
         setError("");
+        setPasswordError("");
 
         try {
+            // 1. Handle Password Change (if provided)
+            if (oldPassword || newPassword || confirmPassword) {
+                if (!oldPassword || !newPassword || !confirmPassword) {
+                    setPasswordError("All password fields are required");
+                    setLoading(false);
+                    return;
+                }
+                if (newPassword !== confirmPassword) {
+                    setPasswordError("New passwords do not match");
+                    setLoading(false);
+                    return;
+                }
+                await api.post("/users/change-password", {
+                    oldPassword,
+                    newPassword,
+                    confirmPassword
+                });
+            }
 
+            // 2. Handle Profile Details (Name, Email)
             if (fullName !== user?.fullName || email !== user?.email) {
                 await api.patch("/users/account-detail", { fullName, email });
             }
 
-
+            // 3. Handle Avatar
             if (avatarFile) {
                 const formData = new FormData();
                 formData.append("avatar", avatarFile);
-
                 await api.patch("/users/avatar", formData);
             }
 
-
+            // 4. Handle Cover Image
             if (coverFile) {
                 const formData = new FormData();
                 formData.append("coverImage", coverFile);
@@ -155,6 +180,49 @@ const EditProfile = ({ user, onClose, onUpdate }) => {
                                     className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-4 pr-4 py-3 text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-colors"
                                     placeholder="Enter your email"
                                 />
+                            </div>
+                        </div>
+
+                        <div className="border-t border-gray-800 pt-6">
+                            <h3 className="text-white font-semibold mb-4">Change Password</h3>
+                            {passwordError && (
+                                <div className="mb-4 bg-red-500/10 border border-red-500/50 text-red-500 px-4 py-3 rounded-lg text-sm">
+                                    {passwordError}
+                                </div>
+                            )}
+                            <div className="grid grid-cols-1 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-gray-300">Old Password</label>
+                                    <input
+                                        type="password"
+                                        value={oldPassword}
+                                        onChange={(e) => setOldPassword(e.target.value)}
+                                        className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-purple-500"
+                                        placeholder="Old Password"
+                                    />
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-gray-300">New Password</label>
+                                        <input
+                                            type="password"
+                                            value={newPassword}
+                                            onChange={(e) => setNewPassword(e.target.value)}
+                                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-purple-500"
+                                            placeholder="New Password"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-sm font-semibold text-gray-300">Confirm Password</label>
+                                        <input
+                                            type="password"
+                                            value={confirmPassword}
+                                            onChange={(e) => setConfirmPassword(e.target.value)}
+                                            className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-purple-500"
+                                            placeholder="Confirm New Password"
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

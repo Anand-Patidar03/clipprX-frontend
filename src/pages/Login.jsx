@@ -9,6 +9,34 @@ const Login = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Forgot Password State
+  const [isForgotModalOpen, setIsForgotModalOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [loadingForgot, setLoadingForgot] = useState(false);
+  const [forgotMessage, setForgotMessage] = useState("");
+
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!forgotEmail) return;
+
+    setLoadingForgot(true);
+    setForgotMessage("");
+
+    try {
+      await api.post("/users/forgot-password", { email: forgotEmail });
+      setForgotMessage("Reset link sent! Check your email.");
+      setTimeout(() => {
+        setIsForgotModalOpen(false);
+        setForgotMessage("");
+        setForgotEmail("");
+      }, 3000);
+    } catch (err) {
+      setForgotMessage(err.response?.data?.message || "Failed to send link. Try again.");
+    } finally {
+      setLoadingForgot(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
@@ -73,7 +101,7 @@ const Login = () => {
           <div className="space-y-2">
             <div className="flex justify-between items-center ml-1">
               <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Password</label>
-              <a href="#" className="text-xs text-purple-400 hover:text-purple-300 transition-colors">Forgot password?</a>
+              <button type="button" onClick={() => setIsForgotModalOpen(true)} className="text-xs text-purple-400 hover:text-purple-300 transition-colors">Forgot password?</button>
             </div>
             <input
               type="password"
@@ -100,9 +128,6 @@ const Login = () => {
           <div className="h-px bg-gray-700 flex-1"></div>
         </div>
 
-        <button className="mt-6 w-full py-3 bg-white/5 border border-white/5 rounded-xl font-medium text-gray-300 hover:bg-white/10 hover:text-white transition-all duration-300 transform hover:scale-[1.01]">
-          Continue as Guest
-        </button>
 
         <p className="mt-8 text-center text-sm text-gray-500">
           Don't have an account?{" "}
@@ -111,7 +136,51 @@ const Login = () => {
           </Link>
         </p>
       </div>
-    </div>
+
+      {
+        isForgotModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4" onClick={() => setIsForgotModalOpen(false)}>
+            <div className="bg-gray-800 border border-gray-700 p-6 rounded-2xl w-full max-w-md shadow-2xl relative" onClick={e => e.stopPropagation()}>
+              <h2 className="text-xl font-bold text-white mb-4">Reset Password</h2>
+              <p className="text-gray-400 text-sm mb-6">Enter your email address and we'll send you a link to reset your password.</p>
+
+              {forgotMessage && (
+                <div className={`mb-4 p-3 rounded-lg text-sm text-center ${forgotMessage.includes("success") || forgotMessage.includes("sent") ? "bg-green-500/10 text-green-400 border border-green-500/20" : "bg-red-500/10 text-red-400 border border-red-500/20"}`}>
+                  {forgotMessage}
+                </div>
+              )}
+
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <input
+                  type="email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  required
+                  className="w-full px-4 py-3 bg-gray-900/50 border border-gray-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500/50 text-white placeholder-gray-600"
+                  placeholder="name@example.com"
+                />
+                <div className="flex justify-end gap-3 mt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsForgotModalOpen(false)}
+                    className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loadingForgot}
+                    className="px-6 py-2 bg-purple-600 rounded-lg font-bold text-white hover:bg-purple-500 disabled:opacity-50 transition-colors"
+                  >
+                    {loadingForgot ? "Sending..." : "Send Link"}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )
+      }
+    </div >
   );
 };
 

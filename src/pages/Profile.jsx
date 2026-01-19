@@ -228,21 +228,21 @@ const Profile = () => {
                     </div>
 
 
-                    <div className="hidden md:flex items-center gap-12 mt-8 py-6 border-y border-gray-800">
+                    <div className="flex items-center justify-center md:justify-start gap-8 md:gap-12 mt-6 md:mt-8 py-4 md:py-6 border-y border-gray-800">
                         <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bold text-white">{videos.length}</span>
-                            <span className="text-sm text-gray-400 uppercase tracking-wider font-medium">Videos</span>
+                            <span className="text-xl md:text-2xl font-bold text-white">{videos.length}</span>
+                            <span className="text-xs md:text-sm text-gray-400 uppercase tracking-wider font-medium">Videos</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="text-2xl font-bold text-white">{profile.subscriberCount}</span>
-                            <span className="text-sm text-gray-400 uppercase tracking-wider font-medium">Subscribers</span>
+                            <span className="text-xl md:text-2xl font-bold text-white">{profile.subscriberCount}</span>
+                            <span className="text-xs md:text-sm text-gray-400 uppercase tracking-wider font-medium">Subscribers</span>
                         </div>
                     </div>
                 </div>
             </div>
 
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 md:mt-12">
                 <div className="flex items-center gap-8 border-b border-gray-800 mb-8">
                     <button
                         onClick={() => setActiveTab("videos")}
